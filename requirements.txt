@@ -1,2 +1,2 @@
 interop
-numpy==1.26
+#numpy==1.26
