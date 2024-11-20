@@ -29,11 +29,11 @@ def create_method_dictionary(summary_item):
     return summary_dict
 
 
-def round_floats(the_dict):
+def round_floats(the_dict, digits=2):
     new_dict = {}
     for k, v in the_dict.items():
         if isinstance(v, float):
-            new_dict[k] = round(v, 2)
+            new_dict[k] = round(v, digits)
         else:
             new_dict[k] = v
     return new_dict
@@ -43,9 +43,14 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Get Illumina run summary information.')
     parser.add_argument('--run_folder', '-r',  required=True, type=str, help='Path to the Illumina run folder. usually in the form of <date>_<serial-number>_<run>_<flowcell-id>.')
     parser.add_argument('--output_file', '-o', required=True, type=str, help='Path to the output file, which will contain JSON of the run summaries.')
+    parser.add_argument('--round_to', default=2, type=int, help='Round floats to this value; negative values turn off rounding')
+    parser.add_argument('--verbose','-v', action='store_true', help='Enable debug mode')
 
     args = parser.parse_args()
 
+    #
+    # This is the magic, and it's all lifted from https://notebook.community/Illumina/interop/docs/src/Tutorial_01_Intro
+    #
     run_metrics = py_interop_run_metrics.run_metrics()
     valid_to_load = py_interop_run.uchar_vector(py_interop_run.MetricCount, 0)
     py_interop_run_metrics.list_summary_metrics_to_load(valid_to_load)
@@ -53,17 +58,19 @@ if __name__ == '__main__':
     summary = py_interop_summary.run_summary()
     py_interop_summary.summarize_run_metrics(run_metrics, summary)
 
-    # print("All the possible values we could display for total_summary:" )
-    # print(", ".join([method for method in dir(summary.total_summary()) if not method.startswith('_') and method not in ("this", "thisown", "resize")]))
-
+    # this gives us back a summary.total_summary() and a summary.nonindex_summary().  We will put both into the json.
     total_summary = create_method_dictionary(summary.total_summary())
     nonindex_summary = create_method_dictionary(summary.nonindex_summary())
 
-    # round all floats to 2 digits because they can be really long
-    totes = round_floats(total_summary)
-    nonidx = round_floats(nonindex_summary)
+    if args.round_to >= 0:
+        total_summary = round_floats(total_summary, args.round_to)
+        nonindex_summary = round_floats(nonindex_summary, args.round_to)
 
-    everything = {'total_summary': totes, 'nonindex_summary': nonidx}
+    everything = {'total_summary': total_summary, 'nonindex_summary': nonindex_summary}
+
+    if args.verbose:
+        print(json.dumps(everything, indent=4, sort_keys=True))
 
     with open(args.output_file, 'w') as outfile:
         json.dump(everything, outfile, indent=4, sort_keys=True)
+
