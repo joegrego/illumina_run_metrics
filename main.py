@@ -1,3 +1,4 @@
+import argparse
 import json
 
 from interop import py_interop_run_metrics, py_interop_run, py_interop_summary
@@ -17,7 +18,7 @@ def create_method_dictionary(summary_item):
                 total_counterpart_name = method.__name__[:-len('_pf')]
                 try:
                     total_counterpart = getattr(summary_item, total_counterpart_name)
-                    percent_name = f"percent_{method.__name__}"
+                    percent_name = f"{method.__name__}__percent"  # yes, two underscores on purpose to separate ourselves from the real data
                     if percent_name not in summary_dict:
                         # don't replace a real thing!
                         summary_dict[percent_name] = (method()/total_counterpart())*100
@@ -39,13 +40,16 @@ def round_floats(the_dict):
 
 
 if __name__ == '__main__':
-    # run_folder = "/Volumes/SharedHITSX/AGC-Tris/Illumina/runs/Next2kA-157/241113_VH00887_157_AAG5FJHM5/"
-    run_folder = "MiSeqDemo/"
+    parser = argparse.ArgumentParser(description='Get Illumina run summary information.')
+    parser.add_argument('--run_folder', '-r',  required=True, type=str, help='Path to the Illumina run folder. usually in the form of <date>_<serial-number>_<run>_<flowcell-id>.')
+    parser.add_argument('--output_file', '-o', required=True, type=str, help='Path to the output file, which will contain JSON of the run summaries.')
+
+    args = parser.parse_args()
 
     run_metrics = py_interop_run_metrics.run_metrics()
     valid_to_load = py_interop_run.uchar_vector(py_interop_run.MetricCount, 0)
     py_interop_run_metrics.list_summary_metrics_to_load(valid_to_load)
-    run_folder = run_metrics.read(run_folder, valid_to_load)
+    run_folder = run_metrics.read(args.run_folder, valid_to_load)
     summary = py_interop_summary.run_summary()
     py_interop_summary.summarize_run_metrics(run_metrics, summary)
 
@@ -61,4 +65,5 @@ if __name__ == '__main__':
 
     everything = {'total_summary': totes, 'nonindex_summary': nonidx}
 
-    print(json.dumps(everything, indent=4))
+    with open(args.output_file, 'w') as outfile:
+        json.dump(everything, outfile, indent=4, sort_keys=True)
