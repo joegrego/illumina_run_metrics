@@ -2,6 +2,24 @@ import json
 
 from interop import py_interop_run_metrics, py_interop_run, py_interop_summary
 
+
+def create_method_dictionary(summary_item):
+    summary_dict = {}
+    for method in dir(summary_item):
+        if not method.startswith('_') and method not in ("this", "thisown", "resize") and callable(getattr(summary_item, method)):
+            method = getattr(summary_item, method)
+            summary_dict[method.__name__] = method()
+    return summary_dict
+
+
+def round_floats(the_dict):
+    new_dict = {}
+    for k, v in the_dict.items():
+        if isinstance(v, float):
+            new_dict[k] = round(v, 2)
+    return new_dict
+
+
 if __name__ == '__main__':
     run_folder = "/Volumes/SharedHITSX/AGC-Tris/Illumina/runs/Next2kA-157/241113_VH00887_157_AAG5FJHM5/"
 
@@ -12,51 +30,23 @@ if __name__ == '__main__':
     summary = py_interop_summary.run_summary()
     py_interop_summary.summarize_run_metrics(run_metrics, summary)
 
-    # print("All of the possible values we could display for total_summary:" )
+    # print("All the possible values we could display for total_summary:" )
     # print(", ".join([method for method in dir(summary.total_summary()) if not method.startswith('_') and method not in ("this", "thisown", "resize")]))
-    # '''
-    # cluster_count
-    # cluster_count_pf
-    # error_rate
-    # first_cycle_intensity
-    # percent_aligned
-    # percent_gt_q30
-    # percent_occupancy_proxy
-    # percent_occupied
-    # projected_yield_g
-    # reads
-    # reads_pf
-    # yield_g
-    # '''
 
     # note that there is also a summary.nonindex_summary().*, with I think mostly the same stuff...
 
-    total_reads = {}
+    total_summary = create_method_dictionary(summary.total_summary())
+    total_summary['percent_reads_pf'] = (summary.total_summary().reads_pf() / summary.total_summary().reads()) * 100
+    total_summary['percent_clusters_pf'] = (summary.total_summary().cluster_count_pf() / summary.total_summary().cluster_count()) * 100
 
-    for method in dir(summary.total_summary()):
-        if not method.startswith('_') and method not in ("this", "thisown", "resize") and callable(getattr(summary.total_summary(), method)):
-            method = getattr(summary.total_summary(), method)
-            total_reads[method.__name__] = method()
+    nonindex_summary = create_method_dictionary(summary.nonindex_summary())
+    nonindex_summary['percent_reads_pf'] = (summary.nonindex_summary().reads_pf() / summary.nonindex_summary().reads()) * 100
+    nonindex_summary['percent_clusters_pf'] = (summary.nonindex_summary().cluster_count_pf() / summary.nonindex_summary().cluster_count()) * 100
 
-    # total_reads['cluster_count'] = summary.total_summary().cluster_count()
-    # total_reads['cluster_count_pf'] = summary.total_summary().cluster_count_pf()
-    # total_reads['error_rate'] = summary.total_summary().error_rate()
-    # total_reads['first_cycle_intensity'] = summary.total_summary().first_cycle_intensity()
-    # total_reads['percent_aligned'] = summary.total_summary().percent_aligned()
-    # total_reads['percent_gt_q30'] = summary.total_summary().percent_gt_q30()
-    # total_reads['percent_occupancy_proxy'] = summary.total_summary().percent_occupancy_proxy()
-    # total_reads['percent_occupied'] = summary.total_summary().percent_occupied()
-    # total_reads['projected_yield_g'] = summary.total_summary().projected_yield_g()
-    # total_reads['reads'] = summary.total_summary().reads()
-    # total_reads['reads_pf'] = summary.total_summary().reads_pf()
-    # total_reads['yield_g'] = summary.total_summary().yield_g()
+    # round all floats to 2 digits because they can be really long
+    total_summary = round_floats(total_summary)
+    nonindex_summary = round_floats(nonindex_summary)
 
-    total_reads['percent_reads_pf'] = (summary.total_summary().reads_pf() / summary.total_summary().reads())*100
-    total_reads['percent_clusters_pf'] = (summary.total_summary().cluster_count_pf() / summary.total_summary().cluster_count())*100
+    big_summary = {'total_summary': total_summary, 'nonindex_summary': nonindex_summary}
 
-    # round all floats to 2 digits becaue they can be really long
-    for k, v in total_reads.items():
-        if isinstance(v, float):
-            total_reads[k] = round(v, 2)
-
-    print(json.dumps(total_reads, indent=4))
+    print(json.dumps(big_summary, indent=4))

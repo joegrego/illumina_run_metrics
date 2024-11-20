@@ -1,1 +1,2 @@
 interop
+numpy==1.26
