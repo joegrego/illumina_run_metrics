@@ -1,3 +1,8 @@
+"""
+
+This is an example of how the UMich AGC uses the Illumina interop library to get sequencer run summary information.
+
+"""
 import argparse
 import json
 
