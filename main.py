@@ -13,8 +13,8 @@ def create_method_dictionary(the_object):
 
     This will try to detect "pass filter" (_pf) items, and if there is a matching not-_pf-item, it will calculate
     the percentage with the suffix __percent. So, if there is a "read" and a "read_pf", we'll calculate a "read_pf_percent"
-
     and put that value in the returned dictionary.
+
     :param the_object: the object to find callable methods for
     :type the_object: Any
     :return: a new dictionary with the key as the method name, and the value as the result of the callable function
@@ -103,8 +103,8 @@ def generate_dictionary_of_run_summary(run_folder_path, round_to_digits=2):
     nonindex_summary = create_method_dictionary(summary.nonindex_summary())
 
     if round_to_digits >= 0:
-        total_summary = round_floats(total_summary, args.round_to)
-        nonindex_summary = round_floats(nonindex_summary, args.round_to)
+        total_summary = round_floats(total_summary, round_to_digits)
+        nonindex_summary = round_floats(nonindex_summary, round_to_digits)
 
     return {'total_summary': total_summary, 'nonindex_summary': nonindex_summary}
 
