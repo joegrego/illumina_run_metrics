@@ -2,15 +2,19 @@ import argparse
 import os
 
 
-def find_subdirectories(base_path, filename, depth=None):
+def find_subdirectories(base_path, filename, depth=None, verbose=False):
     result_dirs = []
     for root, dirs, files in os.walk(base_path):
         # Calculate the relative depth of the current directory
         relative_depth = root[len(base_path):].count(os.sep)
-        if depth and relative_depth > depth:
-            # Skip subdirectories beyond the second level
-            continue
+        if relative_depth >= 2:
+            # Clear dirs to prevent os.walk from descending further
+            if verbose:
+                print(f"Stopping at {os.path.abspath(root)}")
+            dirs[:] = []
         if filename in files:
+            if verbose:
+                print(f"Adding {root}")
             result_dirs.append(os.path.abspath(root))
     return result_dirs
 
