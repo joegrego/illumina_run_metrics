@@ -1,7 +1,7 @@
 """
 Super useful wrapper to the illumina_run_summary that will process a whole directory of stuff.
 
-python2 generate_run_summaries_for_directory.py  -f /illumina/runs/ -ofs _runsummary -v
+python2 generate_run_summaries_for_directory.py  -f /illumina/runs/ -op ../outputs/ -s -v
 """
 import argparse
 import json
@@ -11,6 +11,21 @@ from main import generate_dictionary_of_run_summary
 
 
 def find_subdirectories(base_path, filename, depth=None, verbose=False):
+    """
+    chatgpt wrote this to only search for a file down to a specific depth. For this purpose, we probably only want to go down one level,
+    but your mileage may vary.
+
+    :param base_path: where to start looking. something like /ourmount/illumina/allruns/
+    :type base_path: str
+    :param filename: the filename to look for. probably "CopyComplete.txt" or maybe RTAComplete.txt?
+    :type filename: str
+    :param depth: how far down to go. probalby 1 or maybe 2?
+    :type depth: int
+    :param verbose: talk to me
+    :type verbose: bool
+    :return: list of absolute path names that have that file (checked down to 'depth')
+    :rtype: list[str]
+    """
     result_dirs = []
     for root, dirs, files in os.walk(base_path):
         # Calculate the relative depth of the current directory
@@ -39,6 +54,7 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     verbose = args.verbose
+    depth = args.depth if args.depth > 0 else None
 
     directories_that_have_copy_complete = find_subdirectories(args.folder, "CopyComplete.txt", depth=args.depth, verbose=False)
     if verbose:
@@ -81,4 +97,5 @@ if __name__ == '__main__':
     print(f"Completed {count} runs")
 
     if verbose:
+        # this is the stuff that the AGC is really interested in
         print("\n".join(f"{key} : {value}" for key, value in sorted(reads_pf__percents.items())))
