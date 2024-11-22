@@ -1,3 +1,8 @@
+"""
+Super useful wrapper to the illumina_run_summary that will process a whole directory of stuff.
+
+python2 generate_run_summaries_for_directory.py  -f /illumina/runs/ -ofs _runsummary -v
+"""
 import argparse
 import json
 import os
@@ -25,36 +30,41 @@ def find_subdirectories(base_path, filename, depth=None, verbose=False):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Get Illumina run summary information.')
     parser.add_argument('--folder', '-f', required=True, type=str, help='Path to a folder that contains Illumina run folders.')
-    parser.add_argument('--output_file_suffix', '-ofs', required=True, type=str,
+    parser.add_argument('--output_file_suffix', '-ofs', default="_runsummary", type=str,
                         help='A suffix to put on to json file for each output folder. You probably want an underscore or dash as the first character.')
-    parser.add_argument('--verbose', '-v', action='store_true', help='Enable debug mode')
+    parser.add_argument('--output_path', '-op', type=str, default=os.getcwd(), help='Path for output files. defaults to current directory')
     parser.add_argument('--depth', '-d', type=int, default=1, help='how far down the directory tree to stop looking. Defaults to 1 level. -1 means look forever (not recommended)')
+    parser.add_argument('--skip_if_output_exists', '-s', action="store_true", help='If the output json file already exists, skip it processing it.')
+    parser.add_argument('--verbose', '-v', action="store_true", help='Verbose output.')
 
     args = parser.parse_args()
-
     verbose = args.verbose
 
     directories_that_have_copy_complete = find_subdirectories(args.folder, "CopyComplete.txt", depth=args.depth, verbose=False)
-
     if verbose:
         print("\n".join(directories_that_have_copy_complete))
 
     count = 0
     reads_pf__percents = {}
     for d in directories_that_have_copy_complete:
+
+        output_file = os.path.join(args.output_path, os.path.basename(d) + args.output_file_suffix + ".json")
+        if args.skip_if_output_exists and os.path.exists(output_file):
+            if verbose:
+                print(f"Skipping {d} because {output_file} already exists.")
+            continue
+
         count += 1
         if verbose:
             print(f"\n\nprocessing {d}")
         run_summary = generate_dictionary_of_run_summary(d)
-
-        output_file = os.path.basename(d) + args.output_file_suffix + ".json"
 
         try:
             try:
                 split = os.path.basename(d).split("_")
                 key_name = split[1] + "_" + split[2]  # hopefully the serial number and run number
             except IndexError:
-                key_name = output_file
+                key_name = os.path.basename(d)
             reads_pf__percents[key_name] = run_summary["total_summary"]["reads_pf__percent"]
         except KeyError:
             if verbose:
