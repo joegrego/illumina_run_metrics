@@ -25,7 +25,8 @@ def find_subdirectories(base_path, filename, depth=None, verbose=False):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Get Illumina run summary information.')
     parser.add_argument('--folder', '-f', required=True, type=str, help='Path to a folder that contains Illumina run folders.')
-    parser.add_argument('--output_file_suffix', '-ofs', required=True, type=str, help='A suffix to put on to json file for each output folder. You probably want an underscore or dash as the first character.')
+    parser.add_argument('--output_file_suffix', '-ofs', required=True, type=str,
+                        help='A suffix to put on to json file for each output folder. You probably want an underscore or dash as the first character.')
     parser.add_argument('--verbose', '-v', action='store_true', help='Enable debug mode')
     parser.add_argument('--depth', '-d', type=int, default=1, help='how far down the directory tree to stop looking. Defaults to 1 level. -1 means look forever (not recommended)')
 
@@ -49,7 +50,12 @@ if __name__ == '__main__':
         output_file = os.path.basename(d) + args.output_file_suffix + ".json"
 
         try:
-            reads_pf__percents[output_file] = run_summary["total_summary"]["reads_pf__percent"]
+            try:
+                split = os.path.basename(d).split("_")
+                key_name = split[1] + "_" + split[2]  # hopefully the serial number and run number
+            except IndexError:
+                key_name = output_file
+            reads_pf__percents[key_name] = run_summary["total_summary"]["reads_pf__percent"]
         except KeyError:
             if verbose:
                 print(f"No reads_pf__percent for {d}")
