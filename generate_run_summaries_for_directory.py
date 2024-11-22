@@ -49,7 +49,7 @@ if __name__ == '__main__':
         output_file = os.path.basename(d) + args.output_file_suffix + ".json"
 
         try:
-            reads_pf__percents[output_file] = run_summary["reads_pf__percent"]
+            reads_pf__percents[output_file] = run_summary["total_summary"]["reads_pf__percent"]
         except KeyError:
             if verbose:
                 print(f"No reads_pf__percent for {d}")
