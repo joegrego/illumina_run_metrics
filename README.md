@@ -8,11 +8,11 @@ source ./venv/bin/activate
 pip install -r requirements.txt
 ```
 ```shell
-python3 main.py -r MiSeqDemo -o MiSeqDemo.json
+python3 illumina_run_metrics.py -r MiSeqDemo -o MiSeqDemo.json
 ```
 At the AGC, its probably more like:
 ```shell
-python3 main.py -r /nfs/agc-buffer/Illumina/runs/240923_M06643_0567_000000000-DPWFW/ -o MiSeq-567_runinfo.json
+python3 illumina_run_metrics.py -r /nfs/agc-buffer/Illumina/runs/240923_M06643_0567_000000000-DPWFW/ -o MiSeq-567_runinfo.json
 ```
 
 ## oddities

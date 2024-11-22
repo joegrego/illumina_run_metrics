@@ -7,7 +7,7 @@ import argparse
 import json
 import os
 
-from main import generate_dictionary_of_run_summary
+from illumina_run_metrics import generate_dictionary_of_run_summary
 
 
 def find_subdirectories(base_path, filename, depth=None, verbose=False):

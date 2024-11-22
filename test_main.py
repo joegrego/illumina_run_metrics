@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from main import generate_dictionary_of_run_summary
+from illumina_run_metrics import generate_dictionary_of_run_summary
 
 
 class Test(TestCase):
