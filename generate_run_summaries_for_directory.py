@@ -39,13 +39,21 @@ if __name__ == '__main__':
         print("\n".join(directories_that_have_copy_complete))
 
     count = 0
+    reads_pf__percents = {}
     for d in directories_that_have_copy_complete:
         count += 1
         if verbose:
             print(f"\n\nprocessing {d}")
         run_summary = generate_dictionary_of_run_summary(d)
 
-        output_file = os.path.basename(d) + args.output_file_suffix
+        output_file = os.path.basename(d) + args.output_file_suffix + ".json"
+
+        try:
+            reads_pf__percents[output_file] = run_summary["reads_pf__percent"]
+        except KeyError:
+            if verbose:
+                print(f"No reads_pf__percent for {d}")
+            pass
 
         if verbose:
             print(f"writing to {output_file}")
@@ -55,3 +63,6 @@ if __name__ == '__main__':
             json.dump(run_summary, outfile, indent=4, sort_keys=True)
 
     print(f"Completed {count} runs")
+
+    if verbose:
+        print("\n".join(f"{key} : {value}" for key, value in reads_pf__percents.items()))
