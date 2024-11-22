@@ -7,7 +7,7 @@ def find_subdirectories(base_path, filename, depth=None, verbose=False):
     for root, dirs, files in os.walk(base_path):
         # Calculate the relative depth of the current directory
         relative_depth = root[len(base_path):].count(os.sep)
-        if relative_depth >= 2:
+        if relative_depth >= depth:
             # Clear dirs to prevent os.walk from descending further
             if verbose:
                 print(f"Stopping at {os.path.abspath(root)}")
@@ -27,7 +27,7 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    directories_that_have_copy_complete = find_subdirectories(args.folder, "CopyComplete.txt", depth=2)
+    directories_that_have_copy_complete = find_subdirectories(args.folder, "CopyComplete.txt", depth=1, verbose=args.verbose)
 
     if args.verbose:
         print("\n".join(directories_that_have_copy_complete))
