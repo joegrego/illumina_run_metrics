@@ -1,5 +1,8 @@
 import argparse
+import json
 import os
+
+from main import generate_dictionary_of_run_summary
 
 
 def find_subdirectories(base_path, filename, depth=None, verbose=False):
@@ -22,12 +25,33 @@ def find_subdirectories(base_path, filename, depth=None, verbose=False):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Get Illumina run summary information.')
     parser.add_argument('--folder', '-f', required=True, type=str, help='Path to a folder that contains Illumina run folders.')
-    parser.add_argument('--output_file_suffix', '-ofs', required=True, type=str, help='A suffix to put on to json file for each output folder.')
+    parser.add_argument('--output_file_suffix', '-ofs', required=True, type=str, help='A suffix to put on to json file for each output folder. You probably want an underscore or dash as the first character.')
     parser.add_argument('--verbose', '-v', action='store_true', help='Enable debug mode')
+    parser.add_argument('--depth', '-d', type=int, default=1, help='how far down the directory tree to stop looking. Defaults to 1 level. -1 means look forever (not recommended)')
 
     args = parser.parse_args()
 
-    directories_that_have_copy_complete = find_subdirectories(args.folder, "CopyComplete.txt", depth=1, verbose=args.verbose)
+    verbose = args.verbose
 
-    if args.verbose:
+    directories_that_have_copy_complete = find_subdirectories(args.folder, "CopyComplete.txt", depth=args.depth, verbose=False)
+
+    if verbose:
         print("\n".join(directories_that_have_copy_complete))
+
+    count = 0
+    for d in directories_that_have_copy_complete:
+        count += 1
+        if verbose:
+            print(f"\n\nprocessing {d}")
+        run_summary = generate_dictionary_of_run_summary(d)
+
+        output_file = os.path.basename(d) + args.output_file_suffix
+
+        if verbose:
+            print(f"writing to {output_file}")
+            print(json.dumps(run_summary, indent=4, sort_keys=True))
+
+        with open(output_file, 'w') as outfile:
+            json.dump(run_summary, outfile, indent=4, sort_keys=True)
+
+    print(f"Completed {count} runs")
