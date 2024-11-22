@@ -65,4 +65,4 @@ if __name__ == '__main__':
     print(f"Completed {count} runs")
 
     if verbose:
-        print("\n".join(f"{key} : {value}" for key, value in reads_pf__percents.items()))
+        print("\n".join(f"{key} : {value}" for key, value in sorted(reads_pf__percents.items())))
